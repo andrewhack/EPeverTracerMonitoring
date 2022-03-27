@@ -1,0 +1,7 @@
+[INFLUXDB]
+Host = grafana
+Port = 8086
+DB = solar
+User = grafana 
+Pass = solar
+Measurement = solar
