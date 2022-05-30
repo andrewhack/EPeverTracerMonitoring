@@ -29,7 +29,7 @@ Future enhancements:
 Make sure you install the Linux driver for Exar USB UART first
 --------------------------------------------------------------
 The [xr_usb_serial_common](xr_usb_serial_common-1a/) directory contains the makefile and instructions that will compile properly on Linux. Before compiling be sure to install the linux headers.
-Working with newest kernels (tested on 5.13)
+Working with newest kernels (tested on 5.13, not working with 5.15)
 
 * xr_serial stock kernel module is not suitable for communication with Epever devices
 
