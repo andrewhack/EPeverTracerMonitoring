@@ -55,9 +55,9 @@ logtracer.py - this is the main python program collecting the data from Tracer d
 
 The program require two parameter in different combinations:
 
-logtracer.py 'connection string' checkname #console output
+logtracer.py 'connection string' checkname  #console output
   
-logtracer.py 'connection string','connection string' filesnap/dbsnap #/tmp/ep_tracer_id.log / influxdb(grafana) (aggregated kW, other stats from first id)
+logtracer.py 'connection string','connection string' filesnap/dbsnap  #/tmp/ep_tracer_<id>.log / influxdb(grafana) (aggregated kW, other stats from first id)
 - 'connection string' = tty:device id - example: /dev/ttyXRUSB0:1
 
 * tty - The serial device of your usb modbus cable
