@@ -135,7 +135,12 @@ Cloud service integration
 Changes
 ----
 What is changed in ver 1.1:
+
 Connection string to EPever device require TTY togather with id - /dev/ttyXRUSB0:1
+
 InfluxDB statistics modes added:
+
 aggregate - collect the data from all controllers in one measurement defined in Measurement_pref (influx.db configuration file)
+
 individial - two separate measurements Measurement_pref+_<id> - example solar_1, solar_2
+  
