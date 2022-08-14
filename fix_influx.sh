@@ -1,5 +1,5 @@
 #!/bin/bash
-GRAFANA_HOST='hass'
+GRAFANA_HOST='grafana'
 GRAFANA_PORT=8086
 GRAFANA_USER='grafana'
 GRAFANA_PASS='solar'
