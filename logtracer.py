@@ -84,8 +84,8 @@ def logh(logstr):
         print(str(logstr))
 
 debug=0                    
-epever_title="\nEpever Tracer loging script v1.0 - ITCom Solutions - 2022"
-epever_params="./logtracer.py <device id> <check name> -> console output\n./logtracer.py <device id>,<device id> filesnap/dbsnap -> /tmp/ep_tracer_<id>.log / influxdb(grafana) (agregated kW, other stats from first id)"
+epever_title="\nEpever Tracer loging script v1.1 - ITCom Solutions - 2022"
+epever_params="./logtracer.py <connection string> <check name> -> console output\n./logtracer.py <connection string>,<connection string> filesnap/dbsnap -> /tmp/ep_tracer_<id>.log / influxdb(grafana) (agregated kW, other stats from first id)\n\n  <connection string> = tty:device id - example: /dev/ttyXRUSB0:1"
 
 ep_checks = []
 
@@ -117,12 +117,22 @@ if len(sys.argv) >= 3:
 			print (epever_params)
 			print ("\nERROR: Device id can't be less than 1.\n")
 			sys.exit(-1)
+	def tty_check(tty):
+		if not os.path.exists(tty):
+			print (epever_title)
+			print (epever_params)
+			print ("\nERROR: TTY do not exist.\n")
+			sys.exit(-1)
 	if sys.argv[2]=='dbsnap' or sys.argv[2]=='filesnap':
 		ep_IDs=sys.argv[1].split(',')
 		for ep_id in ep_IDs:
-			deviceid_check(ep_id)
+			ep_conn=ep_id.split(':')
+			tty_check(ep_conn[0])
+			deviceid_check(ep_conn[1])
 	else:
-		deviceid_check(sys.argv[1])			
+		ep_conn=sys.argv[1].split(':')
+		tty_check(ep_conn[0])
+		deviceid_check(ep_conn[1])		
 	# Build available checks list
 	for key in ep.regs.keys():
 		if 'watt' in key:
@@ -130,9 +140,9 @@ if len(sys.argv) >= 3:
 				ep_checks.append(key[:-1])
 		else:
 			ep_checks.append(key)
-	def EP_Connect (id):
+	def EP_Connect (tty, id):
 		# Init Epever Tracer 
-		up = ep.SolarTracer(debug, logh, Logger, serialid=int(id))
+		up = ep.SolarTracer(debug, logh, Logger, device=tty, serialid=int(id))
 	
 		# Connect to Epever Tracer
 		if up.connect() < 0:
@@ -167,12 +177,12 @@ if len(sys.argv) >= 3:
 			time.sleep (0.5) # delay in case of comm. issue
 		return -2 
 	if sys.argv[2] == 'filesnap' or sys.argv[2] == 'dbsnap':
-		#ToDo - check all provided ids - separate files for filesnap; agregated kw for dbsnap
 		if sys.argv[2] == 'filesnap':
 			#ToDo
 			for ep_id in ep_IDs:
-	            # connect to Epever
-				up=EP_Connect(ep_id)
+				ep_conn=ep_id.split(':')
+	            # connect to Epever tty, id
+				up=EP_Connect(ep_conn[0], ep_conn[1])
 				body_solar = {}
 				body_solar['pvvolt']=float(Get_RegVal(up.readReg, ep.regs['pvvolt']))
 				body_solar['pvamps']=float(Get_RegVal(up.readReg, ep.regs['pvamps']))
@@ -187,12 +197,11 @@ if len(sys.argv) >= 3:
 				body_solar['eptemp1']=float(Get_RegVal(up.readReg, ep.regs['eptemp1']))
 				body_solar['eptemp2']=float(Get_RegVal(up.readReg, ep.regs['eptemp2']))
 				up.disconnect()
-				File_Submit(ep_id, body_solar)
+				File_Submit(ep_conn[1], body_solar)
 				del body_solar
 				time.sleep (1)
 			sys.exit(0)
 		elif sys.argv[2] == 'dbsnap':
-			# ToDo - check all ids
 			# get timestamps
 			timestamp = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
 			id_indx=0
@@ -203,53 +212,76 @@ if len(sys.argv) >= 3:
 			DCkwh=0
 			DCkwh2d=0
 			for ep_id in ep_IDs:
-	            # connect to Epever
-				up=EP_Connect(ep_id)
-				# Get data - agregste pvwatt, pvkwh, pvkwh2d, dcwatt, dckwh, dckwh2d from all controlers
-				if id_indx==0:
+				ep_conn=ep_id.split(':')
+	            # connect to Epever tty, id
+				up=EP_Connect(ep_conn[0], ep_conn[1])
+				# Get data - two modes: aggregate or individual  
+				# aggregate - aggregates pvwatt, pvkwh, pvkwh2d, dcwatt, dckwh, dckwh2d from all controlers in single db table; voltage and amps from first id
+				# individual - statistics in separate tables. table names are build from the measurement prefix and id
+				if validdbconf['INFLUXDB']['Mode'] == "individual":
+					measurement=validdbconf['INFLUXDB']['Measurement_pref']+'_'+ep_conn[1]
 					pvvolt_val=float(Get_RegVal(up.readReg, ep.regs['pvvolt']))
 					pvamp_val=float(Get_RegVal(up.readReg, ep.regs['pvamps']))
 					bavolt_val=float(Get_RegVal(up.readReg, ep.regs['bavolt']))
 					baapms_val=float(Get_RegVal(up.readReg, ep.regs['baamps']))
 					baperc_val=float(Get_RegVal(up.readReg, ep.regs['baperc']))
 					dcvolt_val=float(Get_RegVal(up.readReg, ep.regs['dcvolt']))
-					dcamp_val=float(Get_RegVal(up.readReg, ep.regs['dcamps']))               
-				PVwatt_tmp=Get_RegVal(up.readReg, ep.regs['pvwatth'])
-				PVwatt=PVwatt+((int(PVwatt_tmp) << 16) + Get_RegVal(up.readReg, ep.regs['pvwattl']))
-				DCwatt_tmp = Get_RegVal(up.readReg, ep.regs['dcwatth'])
-				DCwatt = DCwatt+((int(DCwatt_tmp) << 16) + Get_RegVal(up.readReg, ep.regs['dcwattl']))
-				PVkwh_tmp=Get_RegVal(up.readReg, ep.regs['pvkwhtotal'])
-				PVkwh=PVkwh+PVkwh_tmp
-				PVkwh2d_tmp=Get_RegVal(up.readReg, ep.regs['pvkwhtoday'])
-				PVkwh2d=PVkwh2d+PVkwh2d_tmp
-				DCkwh_tmp=Get_RegVal(up.readReg, ep.regs['dckwhtotal'])
-				DCkwh=DCkwh+DCkwh_tmp
-				DCkwh2d_tmp=Get_RegVal(up.readReg, ep.regs['dckwhtoday'])
-				DCkwh2d=DCkwh2d+DCkwh2d_tmp
+					dcamp_val=float(Get_RegVal(up.readReg, ep.regs['dcamps']))
+					PVwatt_tmp=Get_RegVal(up.readReg, ep.regs['pvwatth'])
+					PVwatt=((int(PVwatt_tmp) << 16) + Get_RegVal(up.readReg, ep.regs['pvwattl']))
+					DCwatt_tmp = Get_RegVal(up.readReg, ep.regs['dcwatth'])
+					DCwatt = ((int(DCwatt_tmp) << 16) + Get_RegVal(up.readReg, ep.regs['dcwattl']))
+					PVkwh=Get_RegVal(up.readReg, ep.regs['pvkwhtotal'])
+					PVkwh2d=Get_RegVal(up.readReg, ep.regs['pvkwhtoday'])
+					DCkwh=Get_RegVal(up.readReg, ep.regs['dckwhtotal'])
+					DCkwh2d=Get_RegVal(up.readReg, ep.regs['dckwhtoday'])
+					
+				if validdbconf['INFLUXDB']['Mode'] == "aggregate":
+					measurement=validdbconf['INFLUXDB']['Measurement_pref']
+					if id_indx==0:
+						pvvolt_val=float(Get_RegVal(up.readReg, ep.regs['pvvolt']))
+						pvamp_val=float(Get_RegVal(up.readReg, ep.regs['pvamps']))
+						bavolt_val=float(Get_RegVal(up.readReg, ep.regs['bavolt']))
+						baapms_val=float(Get_RegVal(up.readReg, ep.regs['baamps']))
+						baperc_val=float(Get_RegVal(up.readReg, ep.regs['baperc']))
+						dcvolt_val=float(Get_RegVal(up.readReg, ep.regs['dcvolt']))
+						dcamp_val=float(Get_RegVal(up.readReg, ep.regs['dcamps']))               
+					PVwatt_tmp=Get_RegVal(up.readReg, ep.regs['pvwatth'])
+					PVwatt=PVwatt+((int(PVwatt_tmp) << 16) + Get_RegVal(up.readReg, ep.regs['pvwattl']))
+					DCwatt_tmp = Get_RegVal(up.readReg, ep.regs['dcwatth'])
+					DCwatt = DCwatt+((int(DCwatt_tmp) << 16) + Get_RegVal(up.readReg, ep.regs['dcwattl']))
+					PVkwh_tmp=Get_RegVal(up.readReg, ep.regs['pvkwhtotal'])
+					PVkwh=PVkwh+PVkwh_tmp
+					PVkwh2d_tmp=Get_RegVal(up.readReg, ep.regs['pvkwhtoday'])
+					PVkwh2d=PVkwh2d+PVkwh2d_tmp
+					DCkwh_tmp=Get_RegVal(up.readReg, ep.regs['dckwhtotal'])
+					DCkwh=DCkwh+DCkwh_tmp
+					DCkwh2d_tmp=Get_RegVal(up.readReg, ep.regs['dckwhtoday'])
+					DCkwh2d=DCkwh2d+DCkwh2d_tmp
 				up.disconnect()
 				id_indx=ep_id
 				time.sleep (1)
-			# Data collected for grafana use
-			body_solar = [
-			{
-			"measurement": validdbconf['INFLUXDB']['Measurement'],
-			"time": timestamp,
-			"fields": {
-			"PVvolt": pvvolt_val,
-			"PVamps": pvamp_val,
-			"PVwatt": float(PVwatt),
-			"PVkwh": float(PVkwh),
-			"PVkwh2d": float(PVkwh2d),
-			"BAvolt": bavolt_val,
-			"BAamps": baapms_val,
-			"BAperc": baperc_val,
-			"DCvolt": dcvolt_val,
-			"DCamps": dcamp_val,
-			"DCwatt": float(DCwatt),
-			"DCkwh": float(DCkwh),
-			"DCkwh2d": float(DCkwh2d),}
-			}]
-			DB_Submit(body_solar)	
+				# Data collected for grafana use
+				body_solar = [
+				{
+				"measurement": measurement,
+				"time": timestamp,
+				"fields": {
+				"PVvolt": pvvolt_val,
+				"PVamps": pvamp_val,
+				"PVwatt": float(PVwatt),
+				"PVkwh": float(PVkwh),
+				"PVkwh2d": float(PVkwh2d),
+				"BAvolt": bavolt_val,
+				"BAamps": baapms_val,
+				"BAperc": baperc_val,
+				"DCvolt": dcvolt_val,
+				"DCamps": dcamp_val,
+				"DCwatt": float(DCwatt),
+				"DCkwh": float(DCkwh),
+				"DCkwh2d": float(DCkwh2d),}
+				}]
+				DB_Submit(body_solar)	
 			sys.exit(0)
 			
 	if sys.argv[2] not in ep_checks:
@@ -261,8 +293,9 @@ if len(sys.argv) >= 3:
 			print (v+' ', end="", flush=True)
 		print ("")
 		sys.exit(-1)
-	#Connect to Epever	
-	up=EP_Connect(sys.argv[1])
+	ep_conn=sys.argv[1].split(':')
+	# connect to Epever tty, id
+	up=EP_Connect(ep_conn[0], ep_conn[1])
 	def factory(*args, **kwargs):
 		def f():
 			if args[0] == 'pvwatt':
