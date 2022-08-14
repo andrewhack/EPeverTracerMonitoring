@@ -55,10 +55,12 @@ logtracer.py - this is the main python program collecting the data from Tracer d
 
 The program require two parameter in different combinations:
 
-logtracer.py deviceid checkname -> console output
+logtracer.py 'connection string' checkname -> console output
   
-logtracer.py deviceid,deviceid filesnap/dbsnap -> /tmp/ep_tracer_id.log / influxdb(grafana) (aggregated kW, other stats from first id)
+logtracer.py 'connection string','connection string' filesnap/dbsnap -> /tmp/ep_tracer_id.log / influxdb(grafana) (aggregated kW, other stats from first id)
+- 'connection string' = tty:device id - example: /dev/ttyXRUSB0:1
 
+* tty - The serial device of your usb modbus cable
 * device id - The Tracer devices should have unique id in parallel configuration - from 1 to 6. The default id is 1. For monitoring of multiple devices, separate the IDs with comma 
 * check name - Available checks: pvvolt pvamps pvwatt bavolt baamps bawatt batemp baperc bastat eptemp1 eptemp2 epstat dcvolt dcamps dcwatt pvkwhtotal dckwhtotal pvkwhtoday dckwhtoday
 * filesnap - write the checks result in /tmp/ep_tracer_id.log (id is a number - the id of the controller
