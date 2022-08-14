@@ -1,5 +1,3 @@
-**UNDER RESTRUCTURING - not ready to be used**
-
 Monitoring EPsolar Tracer devices via RS-485 with various logging options 
 =========================================================================
 
@@ -30,8 +28,8 @@ Future enhancements:
 
 Make sure you install the Linux driver for Exar USB UART first
 --------------------------------------------------------------
-The [xr_usb_serial_common](xr_usb_serial_common-1a/) directory contains the makefile and instructions that will compile properly on Liux. Before compiling be sure to install the linux headers.
-Working with newest kernels (tested on 5.13)
+The [xr_usb_serial_common](xr_usb_serial_common-1a/) directory contains the makefile and instructions that will compile properly on Linux. Before compiling be sure to install the linux headers.
+Working with newest kernels (tested on 5.13, not working with 5.15)
 
 * xr_serial stock kernel module is not suitable for communication with Epever devices
 
@@ -48,14 +46,28 @@ Device communications protocols
 
 Python modules
 --------------
-Install minimalmodbus first:
-`pip3 install minimalmodbus`
-
-ToDO
+Install python modules first:
+`pip3 install minimalmodbus influxdb configparser`
 
 Logging scripts
 ---------------
-ToDo
+logtracer.py - this is the main python program collecting the data from Tracer devices. Could be executed from CRON. **Do not execute in interval less then 1 minute**
+
+The program require two parameter in different combinations:
+
+logtracer.py deviceid checkname -> console output
+  
+logtracer.py deviceid,deviceid filesnap/dbsnap -> /tmp/ep_tracer_id.log / influxdb(grafana) (aggregated kW, other stats from first id)
+
+* device id - The Tracer devices should have unique id in parallel configuration - from 1 to 6. The default id is 1. For monitoring of multiple devices, separate the IDs with comma 
+* check name - Available checks: pvvolt pvamps pvwatt bavolt baamps bawatt batemp baperc bastat eptemp1 eptemp2 epstat dcvolt dcamps dcwatt pvkwhtotal dckwhtotal pvkwhtoday dckwhtoday
+* filesnap - write the checks result in /tmp/ep_tracer_id.log (id is a number - the id of the controller
+* dbsnap - sending the data to influx db (grafana)
+* mqtt - ToDo
+
+get_tracer.sh - bash script specifically created to parse the data from filesnap function - useful for application integration or trigger creation
+
+**Ensure influx.db is updated before the first use**
 
 Logging options
 ---------------
@@ -110,3 +122,10 @@ Communication issues could occure in parallel configuraion. Assumption - the bus
 * Fixing Grafana DB
 
 [fix_influx.sh](fix_influx.sh) is a script which will fix the db in case of communication issues as result of the mentioined known bug
+
+ToDo
+----
+
+MQTT integration
+
+Cloud service integration
