@@ -126,8 +126,7 @@ Communication issues could occure in parallel configuraion. Assumption - the bus
 Issue with PVwatt calculation in Tracer 5415an.
 Not clear if this is related to specific firmware version - PVwatt register contain not correct value if the PVamps register is above 20A.
 
-Fix: added new influxdb field in measurement solar_(*) (PVwattfix) as product of PVamps and PVvolt. This is a dummy fix but gives relatively correct value.
-Grafana users need to update the graph sql statement to point the new field instead of PVwatt.
+* Fix: added new influxdb field in measurement solar_(*) (PVwattfix) as product of PVamps and PVvolt. This is a dummy fix but gives relatively correct value. Grafana users need to update the graph sql statement to point the new field instead of PVwatt.
 
 
 ToDo
