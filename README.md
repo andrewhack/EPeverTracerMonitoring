@@ -125,7 +125,7 @@ Communication issues could occure in parallel configuraion. Assumption - the bus
 
 [fix_influx.sh](fix_influx.sh) is a script which will fix the db in case of communication issues as result of the mentioined known bug
 
-* Issue with PVwatt calculation in Tracer 5415an.
+Issue with PVwatt calculation in Tracer 5415an.
 Not clear if this is related to specific firmware version - PVwatt register contain not correct value if the PVamps register is above 20A.
 
 Fix: added new influxdb field in measurement solar_(*) (PVwattfix) as product of PVamps and PVvolt. This is a dummy fix but gives relatively correct value.
