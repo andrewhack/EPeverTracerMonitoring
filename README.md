@@ -146,5 +146,5 @@ InfluxDB statistics modes added:
 
 aggregate - collect the data from all controllers in one measurement defined in Measurement_pref (influx.db configuration file)
 
-individial - separate influxdb measurements:  Measurement_pref+_<id> - example solar_1, solar_2
+individial - separate influxdb measurements:  Measurement_pref+_(id) - example: solar_1, solar_2
   
