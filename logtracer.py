@@ -196,6 +196,9 @@ if len(sys.argv) >= 3:
 				body_solar['epstat']=int(Get_RegVal(up.readReg, ep.regs['epstat']))
 				body_solar['eptemp1']=float(Get_RegVal(up.readReg, ep.regs['eptemp1']))
 				body_solar['eptemp2']=float(Get_RegVal(up.readReg, ep.regs['eptemp2']))
+				PVwatt=Get_RegVal(up.readReg, ep.regs['pvwatth'])
+				PVwatt=((int(PVwatt) << 16) + Get_RegVal(up.readReg, ep.regs['pvwattl']))
+				body_solar['pvwatt']=float(PVwatt)
 				up.disconnect()
 				File_Submit(ep_conn[1], body_solar)
 				del body_solar
@@ -205,10 +208,8 @@ if len(sys.argv) >= 3:
 			# get timestamps
 			timestamp = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
 			id_indx=0
-			PVwatt=0
 			PVkwh=0
 			PVkwh2d=0
-			DCwatt=0
 			DCkwh=0
 			DCkwh2d=0
 			for ep_id in ep_IDs:
@@ -227,10 +228,12 @@ if len(sys.argv) >= 3:
 					baperc_val=float(Get_RegVal(up.readReg, ep.regs['baperc']))
 					dcvolt_val=float(Get_RegVal(up.readReg, ep.regs['dcvolt']))
 					dcamp_val=float(Get_RegVal(up.readReg, ep.regs['dcamps']))
-					PVwatt_tmp=Get_RegVal(up.readReg, ep.regs['pvwatth'])
-					PVwatt=((int(PVwatt_tmp) << 16) + Get_RegVal(up.readReg, ep.regs['pvwattl']))
-					DCwatt_tmp = Get_RegVal(up.readReg, ep.regs['dcwatth'])
-					DCwatt = ((int(DCwatt_tmp) << 16) + Get_RegVal(up.readReg, ep.regs['dcwattl']))
+					
+					PVwatt=Get_RegVal(up.readReg, ep.regs['pvwatth'])
+					PVwatt=((int(PVwatt) << 16) + Get_RegVal(up.readReg, ep.regs['pvwattl']))
+					DCwatt = Get_RegVal(up.readReg, ep.regs['dcwatth'])
+					DCwatt = ((int(DCwatt) << 16) + Get_RegVal(up.readReg, ep.regs['dcwattl']))
+					
 					PVkwh=Get_RegVal(up.readReg, ep.regs['pvkwhtotal'])
 					PVkwh2d=Get_RegVal(up.readReg, ep.regs['pvkwhtoday'])
 					DCkwh=Get_RegVal(up.readReg, ep.regs['dckwhtotal'])
@@ -245,19 +248,17 @@ if len(sys.argv) >= 3:
 						baapms_val=float(Get_RegVal(up.readReg, ep.regs['baamps']))
 						baperc_val=float(Get_RegVal(up.readReg, ep.regs['baperc']))
 						dcvolt_val=float(Get_RegVal(up.readReg, ep.regs['dcvolt']))
-						dcamp_val=float(Get_RegVal(up.readReg, ep.regs['dcamps']))               
-					PVwatt_tmp=Get_RegVal(up.readReg, ep.regs['pvwatth'])
-					PVwatt=PVwatt+((int(PVwatt_tmp) << 16) + Get_RegVal(up.readReg, ep.regs['pvwattl']))
-					DCwatt_tmp = Get_RegVal(up.readReg, ep.regs['dcwatth'])
-					DCwatt = DCwatt+((int(DCwatt_tmp) << 16) + Get_RegVal(up.readReg, ep.regs['dcwattl']))
-					PVkwh_tmp=Get_RegVal(up.readReg, ep.regs['pvkwhtotal'])
-					PVkwh=PVkwh+PVkwh_tmp
-					PVkwh2d_tmp=Get_RegVal(up.readReg, ep.regs['pvkwhtoday'])
-					PVkwh2d=PVkwh2d+PVkwh2d_tmp
-					DCkwh_tmp=Get_RegVal(up.readReg, ep.regs['dckwhtotal'])
-					DCkwh=DCkwh+DCkwh_tmp
-					DCkwh2d_tmp=Get_RegVal(up.readReg, ep.regs['dckwhtoday'])
-					DCkwh2d=DCkwh2d+DCkwh2d_tmp
+						dcamp_val=float(Get_RegVal(up.readReg, ep.regs['dcamps']))  
+						
+					PVwatt=Get_RegVal(up.readReg, ep.regs['pvwatth'])
+					PVwatt=((int(PVwatt) << 16) + Get_RegVal(up.readReg, ep.regs['pvwattl']))
+					DCwatt = Get_RegVal(up.readReg, ep.regs['dcwatth'])
+					DCwatt = ((int(DCwatt) << 16) + Get_RegVal(up.readReg, ep.regs['dcwattl']))
+				             
+					PVkwh=PVkwh+Get_RegVal(up.readReg, ep.regs['pvkwhtotal'])
+					PVkwh2d=PVkwh2d+Get_RegVal(up.readReg, ep.regs['pvkwhtoday'])
+					DCkwh=DCkwh+Get_RegVal(up.readReg, ep.regs['dckwhtotal'])
+					DCkwh2d=DCkwh2d+Get_RegVal(up.readReg, ep.regs['dckwhtoday'])
 				up.disconnect()
 				id_indx=ep_id
 				time.sleep (1)
@@ -267,19 +268,20 @@ if len(sys.argv) >= 3:
 				"measurement": measurement,
 				"time": timestamp,
 				"fields": {
-				"PVvolt": pvvolt_val,
-				"PVamps": pvamp_val,
+				"PVvolt": float(pvvolt_val),
+				"PVamps": float(pvamp_val),
 				"PVwatt": float(PVwatt),
 				"PVkwh": float(PVkwh),
 				"PVkwh2d": float(PVkwh2d),
-				"BAvolt": bavolt_val,
-				"BAamps": baapms_val,
-				"BAperc": baperc_val,
-				"DCvolt": dcvolt_val,
-				"DCamps": dcamp_val,
+				"BAvolt": float(bavolt_val),
+				"BAamps": float(baapms_val),
+				"BAperc": float(baperc_val),
+				"DCvolt": float(dcvolt_val),
+				"DCamps": float(dcamp_val),
 				"DCwatt": float(DCwatt),
 				"DCkwh": float(DCkwh),
-				"DCkwh2d": float(DCkwh2d),}
+				"DCkwh2d": float(DCkwh2d),
+				"PVwattfix": float(pvvolt_val*pvamp_val),}
 				}]
 				DB_Submit(body_solar)	
 			sys.exit(0)
