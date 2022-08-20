@@ -121,9 +121,7 @@ Known BUGS
 ----------
 Communication issues could occure in parallel configuraion. Assumption - the bus is busy during the communication between Tracer devices. PAL-ADP regularly check the connected devices if necessary to adjust the charging parameters. In case of such scenario the script is returning -2 which could create artefacts in your graphs. At the moment this is mitigated with error handling and timeouts - reducing these cases to minimum.
 
-* Fixing Grafana DB
-
-[fix_influx.sh](fix_influx.sh) is a script which will fix the db in case of communication issues as result of the mentioined known bug
+* Fixing Grafana DB - [fix_influx.sh](fix_influx.sh) is a script which will fix the db in case of communication issues as result of the mentioined known bug
 
 Issue with PVwatt calculation in Tracer 5415an.
 Not clear if this is related to specific firmware version - PVwatt register contain not correct value if the PVamps register is above 20A.
