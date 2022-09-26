@@ -1,3 +1,6 @@
+!!! Not maintained anymore !!!
+=============================
+
 Monitoring EPsolar Tracer devices via RS-485 with various logging options 
 =========================================================================
 
@@ -5,16 +8,12 @@ Monitoring EPsolar Tracer devices via RS-485 with various logging options
 **Supporting multiple controlers** via PAL-ADP Parallel Adapter (up to 6 controllers).
 
 Main features:
-* Data logging to DB, file, MQTT
+* Data logging to DB, file
 * Grafana dashboard
 * Error logs
 * Device communication issues handling
 * Multiple charge controllers supported
 * Configuration options
-
-Future enhancements:
-* Cloud integration
-* Complete solution - plug and run
 
 ## Requirements
 - Linux - any distro - Debian, Ubuntu, Raspbian...
@@ -77,8 +76,6 @@ InfluxDB - used for Grafana visualization (for multiple devices, the watt data i
 
 File - separate file for each controller in dictionary structured format - to process or to integrate the data with other systems
 
-MQTT - ToDo
-
 Single registry check (volt, amp...) - mainly for testing
 
 
@@ -129,15 +126,8 @@ Not clear if this is related to specific firmware version - PVwatt register cont
 * Fix: added new influxdb field in measurement solar_(*) (PVwattfix) as product of PVamps and PVvolt. This is a dummy fix but gives relatively correct value. Grafana users need to update the graph sql statement to point the new field instead of PVwatt.
 
 
-ToDo
-----
-
-MQTT integration
-
-Cloud service integration
-
-Changes
-----
+Latest Changes
+--------------
 What is changed in ver 1.1:
 
 Connection string to EPever device require TTY togather with id - /dev/ttyXRUSB0:1
