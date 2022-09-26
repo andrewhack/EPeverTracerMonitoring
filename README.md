@@ -20,7 +20,6 @@ Main features:
 - Python 3 (python2 not supported)
 - Influx DB and its Python modules
 - Grafana
-- Paho-MQTT 
 - To communicate with the devices you will need [Minimal Modbus](https://minimalmodbus.readthedocs.io/en/stable/) module for Python
 - CC-USB-RS485-150U cable
 - PAL-ADP (optional)
@@ -64,7 +63,6 @@ logtracer.py 'connection string','connection string' filesnap/dbsnap  #/tmp/ep_t
 * check name - Available checks: pvvolt pvamps pvwatt bavolt baamps bawatt batemp baperc bastat eptemp1 eptemp2 epstat dcvolt dcamps dcwatt pvkwhtotal dckwhtotal pvkwhtoday dckwhtoday
 * filesnap - write the checks result in /tmp/ep_tracer_id.log (id is a number - the id of the controller
 * dbsnap - sending the data to influx db (grafana)
-* mqtt - ToDo
 
 get_tracer.sh - bash script specifically created to parse the data from filesnap function - useful for application integration or trigger creation
 
